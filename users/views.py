@@ -2,20 +2,20 @@ from django.contrib.auth.views import LoginView as LoginViewContrib
 from django.contrib.auth.views import LogoutView as LogoutViewContrib
 from django.views.generic import CreateView
 
-from .forms import AuthForm, RegisterForm
-from .models import MyUser
+from users.forms import CustomAuthForm, RegisterForm
+from users.models import CustomUser
 
 
 class RegisterView(CreateView):
-    model = MyUser
+    model = CustomUser
     form_class = RegisterForm
-    template_name = "userapp/register_view.html"
-    success_url = "/login/"
+    template_name = "users/register_view.html"
+    success_url = "/"
 
 
 class LoginView(LoginViewContrib):
-    form_class = AuthForm
-    template_name = "userapp/login_view.html"
+    form_class = CustomAuthForm
+    template_name = "users/login_view.html"
     success_url = "/"
 
 
