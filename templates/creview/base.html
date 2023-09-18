@@ -21,7 +21,12 @@
 <div class="container">
     <div class="pb-2">
         {% include 'creview/components/app_menu.html' %}
-        {% block top %}top block{% endblock %}
+        {% if user.is_authenticated %}
+            user: {{ user.email }}
+        {% else %}
+            please enter credentials
+        {% endif %}
+        <div>{% block top %}{% endblock %}</div>
     </div>
     <div>
         {% block main %}main block{% endblock %}
