@@ -1,17 +1,29 @@
 {% extends "creview/base.html" %}
 
 {% block top %}
-    Upload new file
+    Uploaded files
 {% endblock %}
 
 {% block main %}
-    <div class="w-25 mx-auto">
-        <span>file name</span>
-        <button class="btn btn-outline-light">
-            Update
-        </button>
-        <button class="btn btn-outline-light">
-            Delete
-        </button>
+    <div class="mx-auto">
+        <h1>Files List</h1>
+        {% include "creview/components/app_flashed_info.html" %}
+        {% if files_list %}
+            <ul>
+                {% for file in files_list %}
+                    <li>
+                        {{ file.file.name }}
+                        <button class="btn btn-outline-light">
+                            Update
+                        </button>
+                        <button class="btn btn-outline-light">
+                            Delete
+                        </button>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>There are no files uploaded.</p>
+        {% endif %}
     </div>
 {% endblock %}
