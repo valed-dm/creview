@@ -1,0 +1,14 @@
+{% extends "creview/base.html" %}
+
+{% block top %}
+    Report for the file {filename}
+{% endblock %}
+
+{% block main %}
+    <div class="mx-auto">
+        <span>{filename} Report text</span>
+        <button class="btn btn-outline-light">
+            Edit file
+        </button>
+    </div>
+{% endblock %}
