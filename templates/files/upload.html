@@ -1,0 +1,16 @@
+{% extends "creview/base.html" %}
+
+{% block top %}
+    Upload file
+{% endblock %}
+
+{% block main %}
+    <div class="mx-auto">
+        {% include "creview/components/app_flashed_info.html" %}
+        <form enctype=multipart/form-data method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <input type="submit" value="Upload">
+        </form>
+    </div>
+{% endblock %}
