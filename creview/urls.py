@@ -14,10 +14,12 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 
-from files.views import FilesListView
+from files.views import FilesListView, upload_file
 from users.views import RegisterView, LoginView, LogoutView
 
 urlpatterns = [
@@ -27,4 +29,8 @@ urlpatterns = [
     path("logout/", LogoutView.as_view(), name="logout"),
     path("register/", RegisterView.as_view(), name="register"),
     path("files/", FilesListView.as_view(), name="files"),
+    path("upload/", upload_file, name="upload"),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

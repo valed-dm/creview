@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/4.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
-
+import os
 from pathlib import Path
 
 import environ
@@ -135,6 +135,11 @@ USE_TZ = True
 STATICFILES_DIRS = [BASE_DIR / "creview/static"]
 STATIC_URL = "/static/"
 STATIC_ROOT = env.str("STATIC_URL", default="static/")
+
+# Media files
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
