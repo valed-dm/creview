@@ -16,11 +16,43 @@
                             {% if request.path == "/files/" %}
                                 <a class="nav-link text-success bg-white"
                                    aria-current="page"
-                                   href="{% url 'logout' %}"
+                                   href="{% url 'files' %}"
                                 >
-                                    Logout
+                                    Files
+                                </a>
+                            {% else %}
+                                <a class="nav-link text-white"
+                                   aria-current="page"
+                                   href="{% url 'files' %}"
+                                >
+                                    Files
                                 </a>
                             {% endif %}
+                        </li>
+                        <li class="nav-item">
+                            {% if request.path == "/upload/" %}
+                                <a class="nav-link text-success bg-white"
+                                   aria-current="page"
+                                   href="{% url 'upload' %}"
+                                >
+                                    Upload File
+                                </a>
+                            {% else %}
+                                <a class="nav-link text-white"
+                                   aria-current="page"
+                                   href="{% url 'upload' %}"
+                                >
+                                    Upload New File
+                                </a>
+                            {% endif %}
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white"
+                               aria-current="page"
+                               href="{% url 'logout' %}"
+                            >
+                                Logout
+                            </a>
                         </li>
                     {% else %}
                         <li class="nav-item">
