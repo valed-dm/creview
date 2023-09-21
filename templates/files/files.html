@@ -12,7 +12,9 @@
             <ul>
                 {% for file in files_list %}
                     <li>
-                        {{ file.file.name }}
+                        {{ file.file_name }}
+                        {{ file.status }}
+                        {{ file.date }}
                         <button class="btn btn-outline-light">
                             Update
                         </button>
