@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # imported
     "debug_toolbar",
+    "django_tables2",
     # own
     "creview",
     "users",
@@ -152,5 +153,18 @@ INTERNAL_IPS = ["127.0.0.1"]
 AUTH_USER_MODEL = "users.CustomUser"
 
 LOGIN_URL = "/"
-LOGIN_REDIRECT_URL = "/files/"
+LOGIN_REDIRECT_URL = "/files_table/"
 LOGOUT_REDIRECT_URL = "/"
+
+DJANGO_TABLES2_TABLE_ATTRS = {
+    'class': 'table table-bordered table-sm',
+    'thead': {
+        'class': 'table-light',
+    },
+    'tbody': {
+        'class': 'text-light',
+    },
+    'td': {
+        'class': 'bg-secondary'
+    }
+}
