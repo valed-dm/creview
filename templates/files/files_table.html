@@ -1,0 +1,14 @@
+{% extends "creview/base.html" %}
+
+{% block top %}
+    Uploaded files
+{% endblock %}
+
+{% block main %}
+    <div class="mx-auto">
+        <h1>Files Table</h1>
+        {% include "creview/components/app_flashed_info.html" %}
+        {% load django_tables2 %}
+        {% render_table table %}
+    </div>
+{% endblock %}
