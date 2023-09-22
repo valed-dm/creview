@@ -39,10 +39,11 @@ class File(models.Model):
 def remove_file(**kwargs):
     """Removes files from media folder"""
 
-    # db record clearance
+    # file is being deleted itself from containing folder
+    # folder stays alive
     instance = kwargs.get('instance')
     instance.file.delete(save=False)
-    # media folder empty dirs clearance
+    # if one of media's folders gets empty, it is removed too
     try:
         for p in Path("media").glob('**/*'):
             if p.is_dir() and len(list(p.iterdir())) == 0:
