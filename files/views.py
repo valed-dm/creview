@@ -1,10 +1,11 @@
 """Files app views"""
-
+import json
 import os
 
 import django_tables2 as tables
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
+from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_protect
 from django.views.generic import ListView
 
@@ -67,14 +68,24 @@ def upload_file(request):
     return render(request, "files/upload.html", {"form": form})
 
 
+@method_decorator(csrf_protect, 'post')
 class FilesTableView(tables.SingleTableView):
     """Provides uploaded files table view """
 
     table_class = FilesTable
     template_name = "files/files_table.html"
+    # http_method_names = ['get', 'post']
+
+    def post(self, request, *args, **kwargs):
+        return super().get(self, *args, *kwargs)
 
     def get_queryset(self):
         """Filters output for user's files"""
+
+        if self.request.method == "POST":
+            pks = self.request.POST.getlist("delete")
+            selected_files = File.objects.filter(pk__in=pks)
+            selected_files.delete()
 
         return File.objects \
             .filter(user=self.request.user) \
