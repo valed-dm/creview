@@ -49,4 +49,3 @@ def remove_file(**kwargs):
                 os.removedirs(p)
     except FileNotFoundError:
         pass
-
