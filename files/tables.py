@@ -12,6 +12,7 @@ class FilesTable(tables.Table):
         "td": {"class": "bg-success"},
         "a": {"style": "color: white;"},
     })
+    delete = tables.CheckBoxColumn(accessor='pk')
 
     class Meta:
         """Metadata for FilesTable"""
