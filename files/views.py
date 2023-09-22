@@ -74,8 +74,8 @@ class FilesTableView(tables.SingleTableView):
 
     table_class = FilesTable
     template_name = "files/files_table.html"
-    # http_method_names = ['get', 'post']
 
+    # post-method allowed for FilesTableView
     def post(self, request, *args, **kwargs):
         return super().get(self, *args, *kwargs)
 
