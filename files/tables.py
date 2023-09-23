@@ -5,6 +5,14 @@ import django_tables2 as tables
 from files.models import File
 
 
+class CheckBoxColumnWithName(tables.CheckBoxColumn):
+    """Overrides default CheckBoxColumn"""
+
+    @property
+    def header(self):
+        return self.verbose_name
+
+
 class FilesTable(tables.Table):
     """Creates uploaded files table to be presented by view"""
 
@@ -12,7 +20,14 @@ class FilesTable(tables.Table):
         "td": {"class": "bg-success"},
         "a": {"style": "color: white;"},
     })
-    delete = tables.CheckBoxColumn(accessor='pk')
+    delete = CheckBoxColumnWithName(
+        verbose_name="Delete Files",
+        accessor='pk',
+        attrs={
+            "th": {"class": "text-danger"},
+            "input": {"style": "height: 13px"}
+        }
+    )
 
     class Meta:
         """Metadata for FilesTable"""
