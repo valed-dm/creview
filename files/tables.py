@@ -21,7 +21,7 @@ class FilesTable(tables.Table):
         "a": {"style": "color: white;"},
     })
     delete = CheckBoxColumnWithName(
-        verbose_name="Delete Files",
+        verbose_name="Delete",
         accessor='pk',
         attrs={
             "th": {"class": "text-danger"},
