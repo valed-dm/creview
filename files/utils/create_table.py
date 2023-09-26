@@ -5,12 +5,12 @@ as django_tables2 table on the base of a csv header's list
 import django_tables2 as tables
 
 
-def get_table_from_headers(headers: list) -> type:
+def create_table_from_headers(headers: list) -> type:
     """Creates CSVTable class from a list of .csv file headers"""
 
     attrs = {}
     for item in headers:
-        if item.lower() in ["links", "image"]:
+        if item.lower() in ["links", "image", "reference", "website", "wikipedia"]:
             # creates columns with clickable external links
             attrs[str(item)] = tables.URLColumn(
                 attrs={"a": {"style": "color: white;"}},
