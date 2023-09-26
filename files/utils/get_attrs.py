@@ -10,6 +10,6 @@ from django_tables2.utils import AttributeDict, computed_values
 
 def get_attrs(self, **kwargs):
     attrs = AttributeDict(computed_values(self.attrs or {}, kwargs=kwargs))
-    file_requested = "?f=" + self.compose_url(**kwargs).strip("/")
+    file_requested = "?f=" + str(self.compose_url(**kwargs)).strip("/")
     attrs["href"] = f"/csv_table/{file_requested}"
     return attrs
