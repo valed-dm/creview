@@ -88,7 +88,11 @@ def csv_table(request):
     for col in df.columns:
         headers.append(col)
     dynamic_table = get_table_from_headers(headers)
-    table = dynamic_table(data=df.to_dict("records"))
+    table = dynamic_table(
+        data=df.to_dict("records"),
+        template_name="django_tables2/bootstrap5.html"
+    )
+    table.paginate(page=request.GET.get("page", 1), per_page=25)
 
     context = {'csv_table': table, 'filename': filename, 'fpath': csv_f}
 
