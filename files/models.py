@@ -25,6 +25,7 @@ class File(models.Model):
     file = models.FileField(upload_to=user_directory_path)
     headers = models.CharField(max_length=200, null=True, blank=True)
     date = models.DateTimeField(auto_now_add=True, blank=False)
+    size = models.CharField(max_length=10, null=True, blank=True)
     status = models.CharField(max_length=8, default="new")
 
 
@@ -36,7 +37,7 @@ def remove_file(**kwargs):
     # folder stays alive
     instance = kwargs.get('instance')
     instance.file.delete(save=False)
-    # if one of media's folders gets empty, it is removed too
+    # if one of media's child folders gets empty, it is deleted too
     try:
         for p in Path("media").glob('**/*'):
             if p.is_dir() and len(list(p.iterdir())) == 0:
