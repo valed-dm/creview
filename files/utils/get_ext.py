@@ -1,5 +1,4 @@
 """Gets a file extension"""
-
 import os
 
 
