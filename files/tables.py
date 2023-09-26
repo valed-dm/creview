@@ -38,4 +38,4 @@ class FilesTable(tables.Table):
         """Metadata for FilesTable"""
 
         model = File
-        fields = ['file', 'headers', 'date', 'status']
+        fields = ['file', 'headers', 'date', 'status', 'size']
