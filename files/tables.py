@@ -25,6 +25,10 @@ class FilesTable(tables.Table):
         "td": {"class": "bg-success"},
         "a": {"style": "color: white;"},
     })
+    # link to configuration of customized view table page
+    headers = tables.URLColumn(attrs={
+        "a": {"style": "color: white;"}
+    })
     delete = CheckBoxColumnWithName(
         verbose_name="Delete",
         accessor='pk',
