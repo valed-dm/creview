@@ -2,6 +2,7 @@
 import os
 
 import django_tables2 as tables
+import pandas as pd
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.utils.decorators import method_decorator
@@ -33,17 +34,75 @@ def upload_file(request):
 def csv_table(request):
     """Handles .csv file view as a table"""
 
-    csv_f = request.GET.get('f')
+    csv_file_path = request.GET.get('req')
+    print('sort by ->', request.GET.get("sort"))
     # to handle external links contained in csv table
-    if csv_f.startswith("https") or csv_f.startswith("http"):
-        return HttpResponseRedirect(csv_f)
-    df = get_df(csv_f)
-    table = get_csv_table(request, df)
+    if csv_file_path.startswith("http") or csv_file_path.startswith("https"):
+        return HttpResponseRedirect(csv_file_path)
+    df = get_df(csv_file_path)
+    table = get_csv_table(request, df, links=None)
 
     context = {
-        'csv_table': table,
-        'filename': os.path.basename(csv_f),
-        'fpath': csv_f
+        'filename': os.path.basename(csv_file_path),
+        'filepath': csv_file_path,
+        'table': table,
+    }
+
+    return render(request, "files/csv_table.html", context)
+
+
+@csrf_protect
+def set_csv_preview(request):
+    """Handles .csv file customized preview configuration"""
+
+    headers = request.GET.get('req')
+    file = File.objects.get(headers=headers)
+    fname = file.file_name
+    fpath = file.file
+
+    if request.method == "POST":
+        include_columns = request.POST.getlist("include")
+        as_link = request.POST.getlist("as_link")
+        df = get_df(path=fpath, usecols=include_columns)
+        customized_path = f"media/{'customized.' + fname}"
+        df.to_csv(path_or_buf=customized_path, encoding='utf-8', index=False)
+        request.session['filename'] = fname
+        request.session["filepath"] = customized_path
+        request.session["as_link"] = as_link
+
+        return HttpResponseRedirect("/customized/")
+
+    hds = headers.split(", ")
+    checkboxes = [0 for h in hds]
+    data = {
+        "columns": hds,
+        "include": checkboxes,
+        "as_link": checkboxes
+    }
+    df = pd.DataFrame(data)
+    table = get_csv_table(request, df, links=None)
+    context = {
+        "filename": fname,
+        "filepath": fpath,
+        "table": table
+    }
+
+    return render(request, "files/set_csv_preview.html", context)
+
+
+def customized_preview(request):
+    """Customized .csv preview"""
+
+    fname = request.session['filename']
+    fpath = request.session['filepath']
+    as_link = request.session["as_link"]
+    df = get_df(path=fpath)
+    table = get_csv_table(request, df, links=as_link)
+
+    context = {
+        "filename": fname,
+        "filepath": fpath,
+        "table": table
     }
 
     return render(request, "files/csv_table.html", context)
