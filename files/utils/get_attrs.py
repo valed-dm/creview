@@ -10,6 +10,12 @@ from django_tables2.utils import AttributeDict, computed_values
 
 def get_attrs(self, **kwargs):
     attrs = AttributeDict(computed_values(self.attrs or {}, kwargs=kwargs))
-    file_requested = "?f=" + str(self.compose_url(**kwargs)).strip("/")
-    attrs["href"] = f"/csv_table/{file_requested}"
+    cell_data = str(self.compose_url(**kwargs))
+    req = "?req=" + cell_data.strip("/")
+    if "," in cell_data:
+        # link to set_csv_preview embedded to headers string
+        attrs["href"] = f"/set_csv_preview/{req}"
+        return attrs
+    # link to uploaded csv file table view embedded to file name
+    attrs["href"] = f"/csv_table/{req}"
     return attrs
