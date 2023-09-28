@@ -1,13 +1,13 @@
 {% extends "creview/base.html" %}
 
 {% block top %}
-    file path: {{ fpath }}
+    file path: {{ filepath }}
 {% endblock %}
 
 {% block main %}
     <div class="mx-auto">
         <h2>Table source: {{ filename }}</h2>
         {% load django_tables2 %}
-        {% render_table csv_table %}
+        {% render_table table %}
     </div>
 {% endblock %}
