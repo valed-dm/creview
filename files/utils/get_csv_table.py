@@ -2,13 +2,14 @@
 from files.utils.create_table import create_table_from_headers
 
 
-def get_csv_table(request, df):
+def get_csv_table(request, df, links):
     """Paginated table is ready to be rendered"""
 
     headers = []
     for col in df.columns:
         headers.append(col)
-    dynamic_table = create_table_from_headers(headers)
+    # dynamically created django_tables2 CSVTable class
+    dynamic_table = create_table_from_headers(headers, links)
     table = dynamic_table(
         data=df.to_dict("records"),
         template_name="django_tables2/bootstrap5.html"
