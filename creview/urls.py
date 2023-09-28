@@ -19,7 +19,7 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 
-from files.views import FilesTableView, csv_table, upload_file
+from files.views import FilesTableView, csv_table, set_csv_preview, customized_preview, upload_file
 from users.views import RegisterView, LoginView, LogoutView
 
 urlpatterns = [
@@ -29,8 +29,10 @@ urlpatterns = [
     path("logout/", LogoutView.as_view(), name="logout"),
     path("register/", RegisterView.as_view(), name="register"),
     path("files_table/", FilesTableView.as_view(), name="files_table"),
-    path("csv_table/", csv_table, name="csv_table"),
     path("upload/", upload_file, name="upload"),
+    path("csv_table/", csv_table, name="csv_table"),
+    path("set_csv_preview/", set_csv_preview, name="set_csv_preview"),
+    path("customized/", customized_preview, name="customized")
 ]
 
 if settings.DEBUG:
