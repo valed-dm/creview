@@ -14,6 +14,8 @@ from files.models import File
 from files.tables import FilesTable
 from files.utils.get_csv_table import get_csv_table
 from files.utils.get_df import get_df
+from files.utils.df_sort import df_sort
+
 
 
 @csrf_protect
@@ -35,13 +37,12 @@ def csv_table(request):
     """Handles .csv file view as a table"""
 
     csv_file_path = request.GET.get('req')
-    print('sort by ->', request.GET.get("sort"))
+    sort = request.GET.get("sort")
     # to handle external links contained in csv table
     if csv_file_path.startswith("http") or csv_file_path.startswith("https"):
         return HttpResponseRedirect(csv_file_path)
-    df = get_df(csv_file_path)
+    df = get_df(path=csv_file_path, sort=sort)
     table = get_csv_table(request, df, links=None)
-
     context = {
         'filename': os.path.basename(csv_file_path),
         'filepath': csv_file_path,
@@ -56,6 +57,7 @@ def set_csv_preview(request):
     """Handles .csv file customized preview configuration"""
 
     headers = request.GET.get('req')
+    sort = request.GET.get("sort")
     file = File.objects.get(headers=headers)
     fname = file.file_name
     fpath = file.file
@@ -80,6 +82,8 @@ def set_csv_preview(request):
         "as_link": checkboxes
     }
     df = pd.DataFrame(data)
+    if sort:
+        df = df_sort(df=df, sort=sort)
     table = get_csv_table(request, df, links=None)
     context = {
         "filename": fname,
@@ -93,10 +97,11 @@ def set_csv_preview(request):
 def customized_preview(request):
     """Customized .csv preview"""
 
+    sort = request.GET.get("sort")
     fname = request.session['filename']
     fpath = request.session['filepath']
     as_link = request.session["as_link"]
-    df = get_df(path=fpath)
+    df = get_df(path=fpath, sort=sort)
     table = get_csv_table(request, df, links=as_link)
 
     context = {
