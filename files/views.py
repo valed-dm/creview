@@ -12,10 +12,9 @@ from files.forms import UploadFileForm
 from files.handlers.handle_uploaded_file import handle_uploaded_file
 from files.models import File
 from files.tables import FilesTable
+from files.utils.df_sort import df_sort
 from files.utils.get_csv_table import get_csv_table
 from files.utils.get_df import get_df
-from files.utils.df_sort import df_sort
-
 
 
 @csrf_protect
