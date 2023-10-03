@@ -14,7 +14,7 @@ def get_attrs(self, **kwargs):
     req = "?req=" + cell_data.strip("/")
     if "," in cell_data:
         # link to set_csv_preview embedded to headers string
-        attrs["href"] = f"/set_csv_preview/{req}"
+        attrs["href"] = f"/customize_csv/{req}"
         return attrs
     # link to uploaded csv file table view embedded to file name
     attrs["href"] = f"/csv_table/{req}"
