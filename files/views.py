@@ -8,7 +8,8 @@ from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_protect
 
-from files.forms import UploadFileForm
+from files.forms import ColumnRowsForm, UploadFileForm
+from files.handlers.handle_filter_by_rows import handle_filter_by_rows
 from files.handlers.handle_uploaded_file import handle_uploaded_file
 from files.models import File
 from files.tables import FilesTable
@@ -32,43 +33,94 @@ def upload_file(request):
     return render(request, "files/upload.html", {"form": form})
 
 
+@method_decorator(csrf_protect, 'post')
+class FilesTableView(tables.SingleTableView):
+    """Provides table view for uploaded files"""
+
+    table_class = FilesTable
+    template_name = "files/uploaded_files.html"
+
+    def post(self, request, *args, **kwargs):
+        """Allows post-method for a view"""
+
+        return super().get(self, *args, *kwargs)
+
+    def get_queryset(self):
+        """Outputs current user files"""
+
+        # deletes selected File table objects
+        if self.request.method == "POST":
+            pks = self.request.POST.getlist("delete")
+            selected_files = File.objects.filter(pk__in=pks)
+            selected_files.delete()
+
+        return File.objects \
+            .filter(user=self.request.user) \
+            .order_by("-date")
+
+
 def csv_table(request):
     """Handles .csv file view as a table"""
 
-    csv_file_path = request.GET.get('req')
     sort = request.GET.get("sort")
+    fpath = request.GET.get('req')
+    fname = os.path.basename(fpath)
+    customized_path = f"media/{'customized.' + fname}"
+
     # to handle external links contained in csv table
-    if csv_file_path.startswith("http") or csv_file_path.startswith("https"):
-        return HttpResponseRedirect(csv_file_path)
-    df = get_df(path=csv_file_path, sort=sort)
+    if fpath.startswith("http") or fpath.startswith("https"):
+        return HttpResponseRedirect(fpath)
+
+    column_rows_form = ColumnRowsForm(request.POST)
+
+    request.session['filename'] = fname
+    request.session["customized_path"] = customized_path
+    request.session["as_link"] = []
+
+    res = handle_filter_by_rows(
+        request=request,
+        path=fpath,
+        sort=sort,
+        form=column_rows_form
+    )
+    if not res[0]:
+        return HttpResponseRedirect("/customized/")
+    df = res[1]
+
     table = get_csv_table(request, df, links=None)
+
     context = {
-        'filename': os.path.basename(csv_file_path),
-        'filepath': csv_file_path,
-        'table': table,
+        "filename": fname,
+        "filepath": fpath,
+        "table": table,
+        "column_rows_form": column_rows_form
     }
 
     return render(request, "files/csv_table.html", context)
 
 
 @csrf_protect
-def set_csv_preview(request):
-    """Handles .csv file customized preview configuration"""
+def customize_csv(request):
+    """Customize .csv file configuration"""
 
-    headers = request.GET.get('req')
     sort = request.GET.get("sort")
+    headers = request.GET.get('req')
     file = File.objects.get(headers=headers)
     fname = file.file_name
     fpath = file.file
+    customized_path = f"media/{'customized.' + fname}"
 
     if request.method == "POST":
         include_columns = request.POST.getlist("include")
         as_link = request.POST.getlist("as_link")
+        if not include_columns:
+            return HttpResponseRedirect("/files_table/")
+
         df = get_df(path=fpath, usecols=include_columns)
-        customized_path = f"media/{'customized.' + fname}"
         df.to_csv(path_or_buf=customized_path, encoding='utf-8', index=False)
+
         request.session['filename'] = fname
-        request.session["filepath"] = customized_path
+        request.session["customized_path"] = customized_path
         request.session["as_link"] = as_link
 
         return HttpResponseRedirect("/customized/")
@@ -83,56 +135,45 @@ def set_csv_preview(request):
     df = pd.DataFrame(data)
     if sort:
         df = df_sort(df=df, sort=sort)
+
     table = get_csv_table(request, df, links=None)
+
     context = {
         "filename": fname,
         "filepath": fpath,
         "table": table
     }
 
-    return render(request, "files/set_csv_preview.html", context)
+    return render(request, "files/csv_table_customize.html", context)
 
 
-def customized_preview(request):
+def customized(request):
     """Customized .csv preview"""
 
     sort = request.GET.get("sort")
     fname = request.session['filename']
-    fpath = request.session['filepath']
+    fpath = request.session['customized_path']
     as_link = request.session["as_link"]
-    df = get_df(path=fpath, sort=sort)
+
+    column_rows_form = ColumnRowsForm(request.POST)
+
+    res = handle_filter_by_rows(
+        request=request,
+        path=fpath,
+        sort=sort,
+        form=column_rows_form
+    )
+    if not res[0]:
+        return HttpResponseRedirect("/customized/")
+    df = res[1]
+
     table = get_csv_table(request, df, links=as_link)
 
     context = {
         "filename": fname,
         "filepath": fpath,
-        "table": table
+        "table": table,
+        "column_rows_form": column_rows_form
     }
 
     return render(request, "files/csv_table.html", context)
-
-
-@method_decorator(csrf_protect, 'post')
-class FilesTableView(tables.SingleTableView):
-    """Provides table view for uploaded files"""
-
-    table_class = FilesTable
-    template_name = "files/files_table.html"
-
-    def post(self, request, *args, **kwargs):
-        """Allows post-method for a view"""
-
-        return super().get(self, *args, *kwargs)
-
-    def get_queryset(self):
-        """Outputs current user files"""
-
-        # deletes uploaded files from user's media folder on request
-        if self.request.method == "POST":
-            pks = self.request.POST.getlist("delete")
-            selected_files = File.objects.filter(pk__in=pks)
-            selected_files.delete()
-
-        return File.objects \
-            .filter(user=self.request.user) \
-            .order_by("-date")
