@@ -19,7 +19,11 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 
-from files.views import FilesTableView, csv_table, set_csv_preview, customized_preview, upload_file
+from files.views import FilesTableView
+from files.views import csv_table
+from files.views import customize_csv
+from files.views import customized
+from files.views import upload_file
 from users.views import RegisterView, LoginView, LogoutView
 
 urlpatterns = [
@@ -31,8 +35,8 @@ urlpatterns = [
     path("files_table/", FilesTableView.as_view(), name="files_table"),
     path("upload/", upload_file, name="upload"),
     path("csv_table/", csv_table, name="csv_table"),
-    path("set_csv_preview/", set_csv_preview, name="set_csv_preview"),
-    path("customized/", customized_preview, name="customized")
+    path("customize_csv/", customize_csv, name="customize_csv"),
+    path("customized/", customized, name="customized"),
 ]
 
 if settings.DEBUG:
