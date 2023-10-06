@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 
-echo "Running migrations, run collectstatic"
+echo "Run collectstatic"
 python manage.py collectstatic --no-input
