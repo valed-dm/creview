@@ -1,0 +1,54 @@
+version: '3.9'
+
+services:
+
+  web:
+    build:
+      dockerfile: docker-build/creview/Dockerfile
+      context: ./
+      args:
+        - ENVIRONMENT=production
+        - ALLOWED_HOSTS=$ALLOWED_HOSTS
+        - SECRET_KEY=$SECRET_KEY
+    image: dmvaled/creview_app
+    entrypoint: [ "/bin/sh","-c" ]
+    command:
+      - |
+        python manage.py makemigrations
+        python manage.py migrate --noinput
+        chmod +x /creview/prestart.sh
+        /creview/prestart.sh
+        gunicorn --bind 0.0.0.0:8000 creview.wsgi:application --workers=4
+    volumes:
+      - static_volume:/creview/static
+      - media_volume:/creview/media
+    expose:
+      - "8000"
+    env_file:
+      - docker.env
+    networks:
+      - django-network
+
+  nginx:
+    build:
+      dockerfile: docker-build/nginx/Dockerfile
+      context: ./
+    image: dmvaled/creview-nginx
+    restart: always
+    volumes:
+      - static_volume:/creview/static
+      - media_volume:/creview/media
+    ports:
+      - "8080:80"
+    depends_on:
+      - web
+    networks:
+      - django-network
+
+networks:
+  django-network:
+    name: django-network
+
+volumes:
+  static_volume:
+  media_volume:
