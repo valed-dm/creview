@@ -27,7 +27,6 @@ from files.views import upload_file
 from users.views import RegisterView, LoginView, LogoutView
 
 urlpatterns = [
-    path("__debug__/", include("debug_toolbar.urls")),
     path("admin/", admin.site.urls),
     path("", LoginView.as_view(), name="login"),
     path("logout/", LogoutView.as_view(), name="logout"),
@@ -41,3 +40,4 @@ urlpatterns = [
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += [path("__debug__/", include("debug_toolbar.urls"))]
