@@ -1,0 +1,43 @@
+version: '3.9'
+
+services:
+
+  web:
+    image: dmvaled/creview_app
+    env_file:
+      - ./docker.env
+    entrypoint: [ "/bin/sh","-c" ]
+    command:
+      - |
+        python manage.py makemigrations
+        python manage.py migrate --noinput
+        python manage.py collectstatic --no-input
+        gunicorn --bind 0.0.0.0:8000 creview.wsgi:application --workers=4
+    volumes:
+      - static_volume:/creview/static
+      - media_volume:/creview/media
+    expose:
+      - "8000"
+    networks:
+      - django-network
+
+  nginx:
+    image: dmvaled/creview-nginx
+    restart: always
+    volumes:
+      - static_volume:/creview/static
+      - media_volume:/creview/media
+    ports:
+      - "8080:80"
+    depends_on:
+      - web
+    networks:
+      - django-network
+
+networks:
+  django-network:
+    name: django-network
+
+volumes:
+  static_volume:
+  media_volume:
