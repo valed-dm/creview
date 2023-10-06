@@ -1,5 +1,5 @@
 """
-WSGI config for creview project.
+WSGI config for a creview project.
 
 It exposes the WSGI callable as a module-level variable named ``application``.
 
