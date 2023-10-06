@@ -12,9 +12,11 @@ def filter_by_rows_values(val_dict, dataframe, not_include):
     ]
     # gets column header (key) from dictionary
     key = list(val_dict)[0]
+    # replace   to perform dataframe filtering
+    df = dataframe.replace(" ", " ", regex=True)
 
     # .isin() considers multiple column values rows contain
-    mask = dataframe[key].isin(val_dict[key])
+    mask = df[key].isin(val_dict[key])
 
     # invert mask to exclude rows if requested
     if not_include:
