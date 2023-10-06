@@ -63,9 +63,10 @@ def csv_table(request):
     """Handles .csv file view as a table"""
 
     sort = request.GET.get("sort")
+    user = request.user
     fpath = request.GET.get('req')
     fname = os.path.basename(fpath)
-    customized_path = f"media/{'customized.' + fname}"
+    customized_path = f"media/user_{user.id}/{'customized.' + fname}"
 
     # to handle external links contained in csv table
     if fpath.startswith("http") or fpath.startswith("https"):
@@ -104,11 +105,12 @@ def customize_csv(request):
     """Customize .csv file configuration"""
 
     sort = request.GET.get("sort")
+    user = request.user
     headers = request.GET.get('req')
-    file = File.objects.get(headers=headers)
+    file = File.objects.get(user=user, headers=headers)
     fname = file.file_name
     fpath = file.file
-    customized_path = f"media/{'customized.' + fname}"
+    customized_path = f"media/user_{user.id}/{'customized.' + fname}"
 
     if request.method == "POST":
         include_columns = request.POST.getlist("include")
