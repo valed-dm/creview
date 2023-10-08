@@ -1,8 +1,11 @@
+"""Informs on file upload success"""
 from django.contrib import messages
 
 
-def info_upload(request, file_name, file_is_py):
-    if file_is_py:
+def info_upload(request, file_name, is_csv):
+    """Emits upload's messages"""
+
+    if is_csv:
         messages.info(
             request,
             f"'{file_name}' is uploaded to "

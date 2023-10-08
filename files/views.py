@@ -1,68 +1,33 @@
 """Files app views"""
-import json
 import os
 
 import django_tables2 as tables
+import pandas as pd
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_protect
-from django.views.generic import ListView
 
-from files.forms import UploadFileForm
+from files.forms import ColumnRowsForm, UploadFileForm
+from files.handlers.handle_filter_by_rows import handle_filter_by_rows
+from files.handlers.handle_uploaded_file import handle_uploaded_file
 from files.models import File
 from files.tables import FilesTable
-from files.utils.get_ext import get_ext
-from files.utils.info_upload import info_upload
+from files.utils.df_sort import df_sort
+from files.utils.get_csv_table import get_csv_table
+from files.utils.get_df import get_df
 
 
 @csrf_protect
 def upload_file(request):
-    """Handle file upload"""
+    """Handles file upload"""
 
     if request.method == "POST":
         form = UploadFileForm(request.POST, request.FILES)
-
-        user = request.user
-        file = request.FILES["file"]
-        fname = request.FILES['file'].name
-        file_is_py = get_ext(fname) == ".py"
-
-        # Only {'.py'} files allowed
-        if form.is_valid() and file_is_py:
-            # searches db among user's files for a match
-            prev_file = File.objects \
-                .filter(file_name=fname).all() \
-                .filter(user=user).first()
-            if not prev_file:
-                new = File(
-                    file=file,
-                    file_name=fname,
-                    user=user
-                )
-                new.save()
-            else:
-                # deletes existing file
-                prev_file_path = prev_file.file.path
-                os.remove(prev_file_path)
-                prev_file.delete()
-                # prepares file record stamped as 'reviewed'
-                reviewed = File(
-                    file=file,
-                    file_name=fname,
-                    user=user,
-                    status="reviewed"
-                )
-                # uploads a new reviewed file version
-                reviewed.save()
-
-            info_upload(request, fname, file_is_py)
-            return HttpResponseRedirect("/files_table/")
-
-        else:
-            info_upload(request, fname, file_is_py)
+        if form.is_valid():
+            if handle_uploaded_file(request):
+                return HttpResponseRedirect("/files_table/")
     else:
-        # An empty form
         form = UploadFileForm()
 
     return render(request, "files/upload.html", {"form": form})
@@ -70,18 +35,20 @@ def upload_file(request):
 
 @method_decorator(csrf_protect, 'post')
 class FilesTableView(tables.SingleTableView):
-    """Provides uploaded files table view """
+    """Provides table view for uploaded files"""
 
     table_class = FilesTable
-    template_name = "files/files_table.html"
+    template_name = "files/uploaded_files.html"
 
-    # post-method allowed for FilesTableView
     def post(self, request, *args, **kwargs):
+        """Allows post-method for a view"""
+
         return super().get(self, *args, *kwargs)
 
     def get_queryset(self):
-        """Filters output for user's files"""
+        """Outputs current user files"""
 
+        # deletes selected File table objects
         if self.request.method == "POST":
             pks = self.request.POST.getlist("delete")
             selected_files = File.objects.filter(pk__in=pks)
@@ -92,19 +59,123 @@ class FilesTableView(tables.SingleTableView):
             .order_by("-date")
 
 
-class ReportView(ListView):
-    """Provides report view"""
+def csv_table(request):
+    """Handles .csv file view as a table"""
 
-    template_name = "files/report.html"
+    sort = request.GET.get("sort")
+    user = request.user
+    fpath = request.GET.get('req')
+    fname = os.path.basename(fpath)
+    customized_path = f"media/user_{user.id}/{'customized.' + fname}"
 
-# class FilesListView(ListView):
-#     model = File
-#     context_object_name = 'files_list'
-#     template_name = "files/files.html"
-#
-#     def get_context_data(self, *, object_list=None, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         context['files_list'] = File.objects \
-#             .filter(user=self.request.user) \
-#             .order_by("-date")
-#         return context
+    # to handle external links contained in csv table
+    if fpath.startswith("http") or fpath.startswith("https"):
+        return HttpResponseRedirect(fpath)
+
+    column_rows_form = ColumnRowsForm(request.POST)
+
+    request.session['filename'] = fname
+    request.session["customized_path"] = customized_path
+    request.session["as_link"] = []
+
+    res = handle_filter_by_rows(
+        request=request,
+        path=fpath,
+        sort=sort,
+        form=column_rows_form
+    )
+    if not res[0]:
+        return HttpResponseRedirect("/customized/")
+    df = res[1]
+
+    table = get_csv_table(request, df, links=None)
+
+    context = {
+        "filename": fname,
+        "filepath": fpath,
+        "table": table,
+        "column_rows_form": column_rows_form
+    }
+
+    return render(request, "files/csv_table.html", context)
+
+
+@csrf_protect
+def customize_csv(request):
+    """Customize .csv file configuration"""
+
+    sort = request.GET.get("sort")
+    user = request.user
+    headers = request.GET.get('req')
+    file = File.objects.get(user=user, headers=headers)
+    fname = file.file_name
+    fpath = file.file
+    customized_path = f"media/user_{user.id}/{'customized.' + fname}"
+
+    if request.method == "POST":
+        include_columns = request.POST.getlist("include")
+        as_link = request.POST.getlist("as_link")
+        if not include_columns:
+            return HttpResponseRedirect("/files_table/")
+
+        df = get_df(path=fpath, usecols=include_columns)
+        df.to_csv(path_or_buf=customized_path, encoding='utf-8', index=False)
+
+        request.session['filename'] = fname
+        request.session["customized_path"] = customized_path
+        request.session["as_link"] = as_link
+
+        return HttpResponseRedirect("/customized/")
+
+    hds = headers.split(", ")
+    checkboxes = [0 for h in hds]
+    data = {
+        "columns": hds,
+        "include": checkboxes,
+        "as_link": checkboxes
+    }
+    df = pd.DataFrame(data)
+    if sort:
+        df = df_sort(df=df, sort=sort)
+
+    table = get_csv_table(request, df, links=None)
+
+    context = {
+        "filename": fname,
+        "filepath": fpath,
+        "table": table
+    }
+
+    return render(request, "files/csv_table_customize.html", context)
+
+
+def customized(request):
+    """Customized .csv preview"""
+
+    sort = request.GET.get("sort")
+    fname = request.session['filename']
+    fpath = request.session['customized_path']
+    as_link = request.session["as_link"]
+
+    column_rows_form = ColumnRowsForm(request.POST)
+
+    res = handle_filter_by_rows(
+        request=request,
+        path=fpath,
+        sort=sort,
+        form=column_rows_form
+    )
+    if not res[0]:
+        return HttpResponseRedirect("/customized/")
+    df = res[1]
+
+    table = get_csv_table(request, df, links=as_link)
+
+    context = {
+        "filename": fname,
+        "filepath": fpath,
+        "table": table,
+        "column_rows_form": column_rows_form
+    }
+
+    return render(request, "files/csv_table.html", context)

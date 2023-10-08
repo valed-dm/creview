@@ -7,7 +7,6 @@ deleting the last empty leaf will cause os.removedirs() to walk up the branch.
 So all empty dirs are gone in a single iteration of the loop with no recursion necessary!
 """
 import os
-from datetime import datetime
 from pathlib import Path
 
 from django.contrib.auth import get_user_model
@@ -15,14 +14,7 @@ from django.db import models
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
 
-
-def user_directory_path(instance, file):
-    """Prepares a path to save file in date structured folder"""
-
-    year = datetime.today().year
-    month = datetime.today().month
-    day = datetime.today().day
-    return 'user_{0}/{1}/{2}/{3}/{4}'.format(instance.user.id, year, month, day, file)
+from files.utils.user_directory_path import user_directory_path
 
 
 class File(models.Model):
@@ -31,7 +23,9 @@ class File(models.Model):
     user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
     file_name = models.CharField(max_length=50, null=False, blank=False)
     file = models.FileField(upload_to=user_directory_path)
+    headers = models.CharField(max_length=200, null=True, blank=True)
     date = models.DateTimeField(auto_now_add=True, blank=False)
+    size = models.CharField(max_length=10, null=True, blank=True)
     status = models.CharField(max_length=8, default="new")
 
 
@@ -43,7 +37,7 @@ def remove_file(**kwargs):
     # folder stays alive
     instance = kwargs.get('instance')
     instance.file.delete(save=False)
-    # if one of media's folders gets empty, it is removed too
+    # if one of media's child folders gets empty, it is deleted too
     try:
         for p in Path("media").glob('**/*'):
             if p.is_dir() and len(list(p.iterdir())) == 0:

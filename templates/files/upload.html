@@ -5,12 +5,16 @@
 {% endblock %}
 
 {% block main %}
-    <div class="mx-auto">
+    <div>
         {% include "creview/components/app_flashed_info.html" %}
         <form enctype=multipart/form-data method="post">
             {% csrf_token %}
-            {{ form.as_p }}
-            <input type="submit" value="Upload">
+            <div class="d-flex justify-content-between w-100">
+                <div class="w-50">
+                    {{ form.as_p }}
+                </div>
+                <input type="submit" value="Upload" class="btn btn-outline-light">
+            </div>
         </form>
     </div>
 {% endblock %}

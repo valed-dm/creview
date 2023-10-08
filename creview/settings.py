@@ -38,7 +38,7 @@ if ENVIRONMENT == "production":
     # SESSION_COOKIE_SECURE = True
     # CSRF_COOKIE_SECURE = True
 
-ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
+ALLOWED_HOSTS = env.tuple("ALLOWED_HOSTS")
 CORS_ORIGIN_WHITELIST = ["http://localhost:8080"]
 CSRF_TRUSTED_ORIGINS = ["http://localhost:8080"]
 
@@ -52,7 +52,6 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     # imported
-    "debug_toolbar",
     "django_tables2",
     # own
     "creview",
@@ -68,8 +67,18 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "debug_toolbar.middleware.DebugToolbarMiddleware",
 ]
+
+if DEBUG:
+    INSTALLED_APPS += [
+        # Dev extensions
+        "debug_toolbar",
+        "coverage",
+    ]
+    MIDDLEWARE += [
+        # Dev extensions
+        "debug_toolbar.middleware.DebugToolbarMiddleware",
+    ]
 
 ROOT_URLCONF = "creview.urls"
 

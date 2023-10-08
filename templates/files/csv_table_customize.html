@@ -1,0 +1,23 @@
+{% extends "creview/base.html" %}
+
+{% block top %}
+    Settings for csv file {{ filename }} preview
+    File path: {{ fpath }}
+{% endblock %}
+
+{% block main %}
+    <div class="mx-auto">
+        <span>{{ filename }}</span>
+        <span>Select headers as preview table columns names</span>
+        <form method="post">
+            {% csrf_token %}
+            {% load django_tables2 %}
+            {% render_table table %}
+            <input
+                    type="submit"
+                    class="btn btn-outline-light"
+                    value="{{ filename }}: Switch to Customized Preview"
+            />
+        </form>
+    </div>
+{% endblock %}
