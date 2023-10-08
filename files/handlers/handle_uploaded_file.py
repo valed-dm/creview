@@ -20,9 +20,10 @@ def handle_uploaded_file(request):
     info_upload(request, fname, is_csv)
 
     if is_csv:
-        f = file.read().decode('utf-8')
-        reader = csv.DictReader(io.StringIO(f))
-        fieldnames = ", ".join(reader.fieldnames)
+        f = file.file
+        wrapper = io.TextIOWrapper(f, encoding='utf-8')
+        reader = csv.reader(wrapper)
+        fieldnames = ", ".join(next(reader))
         status = "new"
 
         # searches db among user's files for a match
